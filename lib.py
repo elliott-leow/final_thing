@@ -287,8 +287,15 @@ def extract_completion_acts(model, tokenizer, prompt, completion,
 
 
 def batch_extract_contrastive(model, tokenizer, stimuli, pos_key, neg_key,
-                              layers=None, n_completion_tokens=15, desc="Extracting",
+                              layers=None, n_completion_tokens=None, desc="Extracting",
                               use_chat_template=True):
+    # Default changed from 15 → None (use full completion). 15 tokens was
+    # too short: v2 completions are 100-250 tokens and the critical
+    # sycophantic-validation vs therapeutic-correction content happens
+    # around tokens 20-80. Pooling over only the first 15 opening tokens
+    # makes the "contrast" a style direction (opening phrase style) rather
+    # than a sycophancy direction. This was the root cause of the
+    # steering-sign-flip observed in the OLMo-3 7B Instruct DPO run.
     """Extract paired activations for a list of contrastive stimuli.
 
     n_completion_tokens: truncate both completions to this many tokens
